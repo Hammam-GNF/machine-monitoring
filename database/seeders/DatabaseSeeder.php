@@ -20,12 +20,14 @@ class DatabaseSeeder extends Seeder
     {
         User::factory()->create([
             'name' => 'System Administrator',
-            'email' => 'admin@machine-monitoring.test',
+            'email' => 'admin@machine-monitoring.com',
+            'role' => 'admin',
         ]);
 
         User::factory()->create([
             'name' => 'Monitoring Viewer',
-            'email' => 'viewer@machine-monitoring.test',
+            'email' => 'viewer@machine-monitoring.com',
+            'role' => 'viewer',
         ]);
 
         $machines = Machine::factory()
