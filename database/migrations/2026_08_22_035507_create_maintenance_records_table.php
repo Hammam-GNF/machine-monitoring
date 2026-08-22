@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreignId('machine_id')
                 ->constrained('machines')
-                ->cascadeOnDelete();
+                ->noActionOnDelete();
 
             $table->string('reason', 50);
             $table->dateTime('detected_at');
