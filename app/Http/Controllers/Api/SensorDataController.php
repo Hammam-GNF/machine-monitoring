@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreSensorDataRequest;
 use App\Models\SensorData;
+use App\Services\MaintenanceDetectionService;
 use Illuminate\Http\JsonResponse;
 
 class SensorDataController extends Controller
 {
+    public function __construct(
+        private readonly MaintenanceDetectionService $maintenanceDetectionService
+    ) {}
+
     public function store(StoreSensorDataRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -30,6 +35,8 @@ class SensorDataController extends Controller
             'received_at' => now(),
             'created_at' => now(),
         ]);
+
+        $this->maintenanceDetectionService->detect($sensorData);
 
         return response()->json([
             'message' => 'Sensor data received successfully.',
