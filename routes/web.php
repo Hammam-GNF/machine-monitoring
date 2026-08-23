@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardPollingController;
 use App\Http\Controllers\MachineController;
 use App\Http\Controllers\SensorController;
 use Illuminate\Support\Facades\Route;
@@ -7,7 +9,11 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+
+    Route::get('dashboard/data', [DashboardPollingController::class, 'index'])
+        ->name('dashboard.data');
 
     Route::get('admin', function () {
         return 'Admin access granted.';
@@ -42,7 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('machines.show');
 
     Route::get('sensors', [SensorController::class, 'index'])
-    ->name('sensors.index');
+        ->name('sensors.index');
 
     Route::middleware('role:admin')->group(function () {
         Route::get('sensors/create', [SensorController::class, 'create'])
