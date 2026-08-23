@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreMachineRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->isAdmin() ?? false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'code' => [
+                'required',
+                'string',
+                'max:50',
+                'unique:machines,code',
+            ],
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+            'location' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+            'machine_type' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+            'installed_at' => [
+                'required',
+                'date',
+            ],
+            'is_active' => [
+                'boolean',
+            ],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'is_active' => $this->boolean('is_active'),
+        ]);
+    }
+}
