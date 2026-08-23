@@ -33,7 +33,7 @@ class GenerateSensorData extends Command
             return self::FAILURE;
         }
 
-        $chunkSize = 1000;
+        $chunkSize = 200;
         $generated = 0;
 
         $this->info("Generating {$total} sensor data records...");
@@ -57,7 +57,12 @@ class GenerateSensorData extends Command
                     'machine_id' => $sensor->machine_id,
                     'sensor_id' => $sensor->id,
                     'status' => random_int(0, 1) === 1 ? 'ON' : 'OFF',
-                    'temperature' => random_int(5000, 9500) / 100,
+                    'temperature' => number_format(
+                        random_int(5000, 9500) / 100,
+                        2,
+                        '.',
+                        ''
+                    ),
                     'output' => random_int(80, 150),
                     'recorded_at' => $recordedAt,
                     'received_at' => $now,
