@@ -3,44 +3,137 @@
 namespace App\Services;
 
 use App\Models\SensorData;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class ProductionReportService
 {
-    public function aggregateByDay(): Collection
-    {
-        return SensorData::query()
-            ->orderBy('recorded_at')
-            ->get(['recorded_at', 'output'])
-            ->groupBy(
-                fn (SensorData $sensorData) => $sensorData->recorded_at
-                    ->format('Y-m-d')
-            )
-            ->map(
-                fn (Collection $readings, string $date) => (object) [
-                    'date' => $date,
-                    'total_output' => $readings->sum('output'),
-                ]
-            )
-            ->values();
+    public function aggregateByDay(
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+        ?int $shift = null
+    ): Collection {
+        return $this->buildQuery($dateFrom, $dateTo, $shift)
+            ->selectRaw($this->dateExpression() . ' as date')
+            ->selectRaw('SUM(output) as total_output')
+            ->groupByRaw($this->dateExpression())
+            ->orderBy('date')
+            ->get();
     }
 
-    public function aggregateByMonth(): Collection
-    {
+    public function aggregateByMonth(
+        ?string $dateFrom = null,
+        ?string $dateTo = null,
+        ?int $shift = null
+    ): Collection {
+        $dateExpression = $this->dateExpression();
+        $monthExpression = $this->monthExpression();
+        $yearExpression = $this->yearExpression();
+
+        return $this->buildQuery($dateFrom, $dateTo, $shift)
+            ->selectRaw("{$yearExpression} as year")
+            ->selectRaw("{$monthExpression} as month")
+            ->selectRaw('SUM(output) as total_output')
+            ->groupByRaw(
+                "{$yearExpression}, {$monthExpression}"
+            )
+            ->orderBy('year')
+            ->orderBy('month')
+            ->get();
+    }
+
+    private function buildQuery(
+        ?string $dateFrom,
+        ?string $dateTo,
+        ?int $shift
+    ): Builder {
         return SensorData::query()
-            ->orderBy('recorded_at')
-            ->get(['recorded_at', 'output'])
-            ->groupBy(
-                fn (SensorData $sensorData) => $sensorData->recorded_at
-                    ->format('Y-m')
+            ->when(
+                $dateFrom,
+                fn (Builder $query, string $date) =>
+                    $query->whereDate('recorded_at', '>=', $date)
             )
-            ->map(
-                fn (Collection $readings, string $month) => (object) [
-                    'year' => (int) substr($month, 0, 4),
-                    'month' => (int) substr($month, 5, 2),
-                    'total_output' => $readings->sum('output'),
-                ]
+            ->when(
+                $dateTo,
+                fn (Builder $query, string $date) =>
+                    $query->whereDate('recorded_at', '<=', $date)
             )
-            ->values();
+            ->when(
+                $shift,
+                fn (Builder $query, int $shift) =>
+                    $this->applyShiftFilter($query, $shift)
+            );
+    }
+
+    private function applyShiftFilter(
+        Builder $query,
+        int $shift
+    ): void {
+        match ($shift) {
+            1 => $query->whereTime(
+                'recorded_at',
+                '>=',
+                '06:00:00'
+            )->whereTime(
+                'recorded_at',
+                '<',
+                '14:00:00'
+            ),
+
+            2 => $query->whereTime(
+                'recorded_at',
+                '>=',
+                '14:00:00'
+            )->whereTime(
+                'recorded_at',
+                '<',
+                '22:00:00'
+            ),
+
+            3 => $query->where(function (Builder $query) {
+                $query
+                    ->whereTime(
+                        'recorded_at',
+                        '>=',
+                        '22:00:00'
+                    )
+                    ->orWhereTime(
+                        'recorded_at',
+                        '<',
+                        '06:00:00'
+                    );
+            }),
+
+            default => throw new \InvalidArgumentException(
+                'Shift must be 1, 2, or 3.'
+            ),
+        };
+    }
+
+    private function dateExpression(): string
+    {
+        return match (SensorData::query()->getConnection()->getDriverName()) {
+            'sqlite' => 'date(recorded_at)',
+            'sqlsrv' => 'CAST(recorded_at AS date)',
+            default => 'DATE(recorded_at)',
+        };
+    }
+
+    private function monthExpression(): string
+    {
+        return match (SensorData::query()->getConnection()->getDriverName()) {
+            'sqlite' => 'strftime("%m", recorded_at)',
+            'sqlsrv' => 'MONTH(recorded_at)',
+            default => 'MONTH(recorded_at)',
+        };
+    }
+
+    private function yearExpression(): string
+    {
+        return match (SensorData::query()->getConnection()->getDriverName()) {
+            'sqlite' => 'strftime("%Y", recorded_at)',
+            'sqlsrv' => 'YEAR(recorded_at)',
+            default => 'YEAR(recorded_at)',
+        };
     }
 }

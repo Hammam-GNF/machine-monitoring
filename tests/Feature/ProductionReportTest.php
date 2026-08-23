@@ -103,3 +103,144 @@ test('production aggregation separates different days', function () {
         ->and((int) $report[0]->total_output)->toBe(100)
         ->and((int) $report[1]->total_output)->toBe(200);
 });
+
+test('production can be filtered by date range', function () {
+    $machine = Machine::factory()->create();
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'output' => 100,
+        'recorded_at' => '2026-08-23 10:00:00',
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'output' => 200,
+        'recorded_at' => '2026-08-24 10:00:00',
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'output' => 300,
+        'recorded_at' => '2026-08-25 10:00:00',
+    ]);
+
+    $report = app(ProductionReportService::class)
+        ->aggregateByDay(
+            dateFrom: '2026-08-24',
+            dateTo: '2026-08-24'
+        );
+
+    expect($report)->toHaveCount(1)
+        ->and($report->first()->date)->toBe('2026-08-24')
+        ->and((int) $report->first()->total_output)->toBe(200);
+});
+
+test('production can be filtered by shift one', function () {
+    $machine = Machine::factory()->create();
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+    ]);
+
+    foreach ([
+        ['output' => 100, 'recorded_at' => '2026-08-24 05:59:00'],
+        ['output' => 200, 'recorded_at' => '2026-08-24 06:00:00'],
+        ['output' => 300, 'recorded_at' => '2026-08-24 10:00:00'],
+        ['output' => 400, 'recorded_at' => '2026-08-24 13:59:59'],
+        ['output' => 500, 'recorded_at' => '2026-08-24 14:00:00'],
+    ] as $reading) {
+        SensorData::factory()->create([
+            'machine_id' => $machine->id,
+            'sensor_id' => $sensor->id,
+            'output' => $reading['output'],
+            'recorded_at' => $reading['recorded_at'],
+        ]);
+    }
+
+    $report = app(ProductionReportService::class)
+        ->aggregateByDay(
+            dateFrom: '2026-08-24',
+            dateTo: '2026-08-24',
+            shift: 1
+        );
+
+    expect($report)->toHaveCount(1)
+        ->and((int) $report->first()->total_output)->toBe(900);
+});
+
+test('production can be filtered by shift two', function () {
+    $machine = Machine::factory()->create();
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+    ]);
+
+    foreach ([
+        ['output' => 100, 'recorded_at' => '2026-08-24 13:59:59'],
+        ['output' => 200, 'recorded_at' => '2026-08-24 14:00:00'],
+        ['output' => 300, 'recorded_at' => '2026-08-24 18:00:00'],
+        ['output' => 400, 'recorded_at' => '2026-08-24 21:59:59'],
+        ['output' => 500, 'recorded_at' => '2026-08-24 22:00:00'],
+    ] as $reading) {
+        SensorData::factory()->create([
+            'machine_id' => $machine->id,
+            'sensor_id' => $sensor->id,
+            'output' => $reading['output'],
+            'recorded_at' => $reading['recorded_at'],
+        ]);
+    }
+
+    $report = app(ProductionReportService::class)
+        ->aggregateByDay(
+            dateFrom: '2026-08-24',
+            dateTo: '2026-08-24',
+            shift: 2
+        );
+
+    expect($report)->toHaveCount(1)
+        ->and((int) $report->first()->total_output)->toBe(900);
+});
+
+test('production can be filtered by shift three', function () {
+    $machine = Machine::factory()->create();
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+    ]);
+
+    foreach ([
+        ['output' => 100, 'recorded_at' => '2026-08-24 05:59:59'],
+        ['output' => 200, 'recorded_at' => '2026-08-24 06:00:00'],
+        ['output' => 300, 'recorded_at' => '2026-08-24 21:59:59'],
+        ['output' => 400, 'recorded_at' => '2026-08-24 22:00:00'],
+        ['output' => 500, 'recorded_at' => '2026-08-24 23:00:00'],
+    ] as $reading) {
+        SensorData::factory()->create([
+            'machine_id' => $machine->id,
+            'sensor_id' => $sensor->id,
+            'output' => $reading['output'],
+            'recorded_at' => $reading['recorded_at'],
+        ]);
+    }
+
+    $report = app(ProductionReportService::class)
+        ->aggregateByDay(
+            dateFrom: '2026-08-24',
+            dateTo: '2026-08-24',
+            shift: 3
+        );
+
+    expect($report)->toHaveCount(1)
+        ->and((int) $report->first()->total_output)->toBe(1000);
+});
+
+test('invalid shift is rejected', function () {
+    expect(
+        fn () => app(ProductionReportService::class)
+            ->aggregateByDay(shift: 4)
+    )->toThrow(InvalidArgumentException::class);
+});
