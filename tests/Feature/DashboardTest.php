@@ -267,3 +267,122 @@ test('dashboard can filter machines without open maintenance', function () {
         ->assertSee('MC-NORMAL')
         ->assertDontSee('MC-MAINT');
 });
+
+test('dashboard preserves filters in the rendered view', function () {
+    $user = User::factory()->create();
+
+    Machine::factory()->create([
+        'code' => 'MC-ON',
+        'name' => 'Production Machine',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'search' => 'MC-ON',
+        'status' => 'ON',
+        'maintenance' => 'normal',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertViewHas('search', 'MC-ON')
+        ->assertViewHas('status', 'ON')
+        ->assertViewHas('maintenance', 'normal');
+});
+
+test('dashboard returns latest sensor data on subsequent requests', function () {
+    $user = User::factory()->create();
+
+    $machine = Machine::factory()->create([
+        'code' => 'MC-001',
+        'is_active' => true,
+    ]);
+
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+        'is_active' => true,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'status' => 'ON',
+        'temperature' => 70,
+        'recorded_at' => now()->subSeconds(10),
+    ]);
+
+    $this->actingAs($user);
+
+    $firstResponse = $this->get(route('dashboard'));
+
+    $firstResponse
+        ->assertOk()
+        ->assertSee('70.00 °C');
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'status' => 'OFF',
+        'temperature' => 85,
+        'recorded_at' => now(),
+    ]);
+
+    $secondResponse = $this->get(route('dashboard'));
+
+    $secondResponse
+        ->assertOk()
+        ->assertSee('85.00 °C')
+        ->assertSee('OFF');
+});
+
+test('dashboard provides empty filter values by default', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard'));
+
+    $response
+        ->assertOk()
+        ->assertViewHas('search', '')
+        ->assertViewHas('status', '')
+        ->assertViewHas('maintenance', '');
+});
+
+test('dashboard polling returns current machine data', function () {
+    $user = User::factory()->create();
+
+    $machine = Machine::factory()->create([
+        'code' => 'MC-001',
+        'name' => 'Production Machine',
+        'is_active' => true,
+    ]);
+
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+        'is_active' => true,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machine->id,
+        'sensor_id' => $sensor->id,
+        'status' => 'ON',
+        'temperature' => 85.5,
+        'output' => 100,
+        'recorded_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->getJson(route('dashboard.data'));
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('stats.total', 1)
+        ->assertJsonPath('stats.active', 1)
+        ->assertJsonPath('machines.0.code', 'MC-001')
+        ->assertJsonPath('machines.0.status', 'ON')
+        ->assertJsonPath('machines.0.temperature', 85.5);
+});
