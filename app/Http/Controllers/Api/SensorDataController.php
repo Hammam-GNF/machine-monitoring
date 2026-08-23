@@ -11,8 +11,22 @@ class SensorDataController extends Controller
 {
     public function store(StoreSensorDataRequest $request): JsonResponse
     {
+        $validated = $request->validated();
+
+        $existingSensorData = SensorData::where(
+            'event_id',
+            $validated['event_id']
+        )->first();
+
+        if ($existingSensorData) {
+            return response()->json([
+                'message' => 'Sensor data already received.',
+                'data' => $existingSensorData,
+            ], 200);
+        }
+
         $sensorData = SensorData::create([
-            ...$request->validated(),
+            ...$validated,
             'received_at' => now(),
             'created_at' => now(),
         ]);
