@@ -14,6 +14,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('viewer', function () {
         return 'Viewer access granted.';
     })->middleware('role:viewer');
+
+    Route::get('admin-or-viewer', function () {
+        return 'Admin or Viewer access granted.';
+    })->middleware('role:admin,viewer');
 });
 
 require __DIR__.'/settings.php';

@@ -66,3 +66,43 @@ test('user role helpers return correct values', function () {
         ->and($viewer->isAdmin())->toBeFalse()
         ->and($viewer->isViewer())->toBeTrue();
 });
+
+test('admin and viewer can access routes with multiple allowed roles', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $viewer = User::factory()->create([
+        'role' => 'viewer',
+    ]);
+
+    $this->actingAs($admin)
+        ->get('/admin-or-viewer')
+        ->assertOk()
+        ->assertSee('Admin or Viewer access granted.');
+
+    $this->actingAs($viewer)
+        ->get('/admin-or-viewer')
+        ->assertOk()
+        ->assertSee('Admin or Viewer access granted.');
+});
+
+test('unknown role cannot access protected routes', function () {
+    $user = User::factory()->create([
+        'role' => 'operator',
+    ]);
+
+    $this->actingAs($user)
+        ->get('/admin')
+        ->assertForbidden();
+
+    $this->actingAs($user)
+        ->get('/viewer')
+        ->assertForbidden();
+});
+
+test('user factory defaults to viewer role', function () {
+    $user = User::factory()->create();
+
+    expect($user->role)->toBe('viewer');
+});
