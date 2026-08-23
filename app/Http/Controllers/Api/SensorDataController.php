@@ -3,22 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreSensorDataRequest;
 use App\Models\SensorData;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class SensorDataController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function store(StoreSensorDataRequest $request): JsonResponse
     {
         $sensorData = SensorData::create([
-            'event_id' => $request->input('event_id'),
-            'machine_id' => $request->input('machine_id'),
-            'sensor_id' => $request->input('sensor_id'),
-            'status' => $request->input('status'),
-            'temperature' => $request->input('temperature'),
-            'output' => $request->input('output'),
-            'recorded_at' => $request->input('recorded_at'),
+            ...$request->validated(),
             'received_at' => now(),
             'created_at' => now(),
         ]);
