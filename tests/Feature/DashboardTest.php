@@ -110,3 +110,160 @@ test('dashboard handles machine without sensor data', function () {
         ->assertSee('Machine Without Data')
         ->assertSee('No Data');
 });
+
+test('dashboard can search machines by code or name', function () {
+    $user = User::factory()->create();
+
+    Machine::factory()->create([
+        'code' => 'MC-001',
+        'name' => 'Production Machine',
+    ]);
+
+    Machine::factory()->create([
+        'code' => 'MC-002',
+        'name' => 'Packaging Machine',
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'search' => 'MC-001',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-001')
+        ->assertDontSee('MC-002');
+});
+
+test('dashboard can filter machines by sensor status', function () {
+    $user = User::factory()->create();
+
+    $onMachine = Machine::factory()->create([
+        'code' => 'MC-ON',
+        'is_active' => true,
+    ]);
+
+    $onSensor = Sensor::factory()->create([
+        'machine_id' => $onMachine->id,
+        'is_active' => true,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $onMachine->id,
+        'sensor_id' => $onSensor->id,
+        'status' => 'ON',
+        'recorded_at' => now(),
+    ]);
+
+    $offMachine = Machine::factory()->create([
+        'code' => 'MC-OFF',
+        'is_active' => true,
+    ]);
+
+    $offSensor = Sensor::factory()->create([
+        'machine_id' => $offMachine->id,
+        'is_active' => true,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $offMachine->id,
+        'sensor_id' => $offSensor->id,
+        'status' => 'OFF',
+        'recorded_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'status' => 'ON',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-ON')
+        ->assertDontSee('MC-OFF');
+});
+
+test('dashboard can filter inactive machines', function () {
+    $user = User::factory()->create();
+
+    Machine::factory()->create([
+        'code' => 'MC-ACTIVE',
+        'is_active' => true,
+    ]);
+
+    Machine::factory()->create([
+        'code' => 'MC-INACTIVE',
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'status' => 'inactive',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-INACTIVE')
+        ->assertDontSee('MC-ACTIVE');
+});
+
+test('dashboard can filter machines needing maintenance', function () {
+    $user = User::factory()->create();
+
+    $machineWithMaintenance = Machine::factory()->create([
+        'code' => 'MC-MAINT',
+    ]);
+
+    MaintenanceRecord::factory()->create([
+        'machine_id' => $machineWithMaintenance->id,
+        'status' => 'open',
+        'detected_at' => now(),
+    ]);
+
+    $normalMachine = Machine::factory()->create([
+        'code' => 'MC-NORMAL',
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'maintenance' => 'needs_maintenance',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-MAINT')
+        ->assertDontSee('MC-NORMAL');
+});
+
+test('dashboard can filter machines without open maintenance', function () {
+    $user = User::factory()->create();
+
+    $machineWithMaintenance = Machine::factory()->create([
+        'code' => 'MC-MAINT',
+    ]);
+
+    MaintenanceRecord::factory()->create([
+        'machine_id' => $machineWithMaintenance->id,
+        'status' => 'open',
+        'detected_at' => now(),
+    ]);
+
+    $normalMachine = Machine::factory()->create([
+        'code' => 'MC-NORMAL',
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'maintenance' => 'normal',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-NORMAL')
+        ->assertDontSee('MC-MAINT');
+});

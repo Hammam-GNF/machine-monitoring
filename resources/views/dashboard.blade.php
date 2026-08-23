@@ -43,6 +43,46 @@
                 </flux:heading>
             </div>
 
+            <form method="GET" action="{{ route('dashboard') }}" class="grid gap-4 border-b border-neutral-200 p-6 md:grid-cols-4 dark:border-neutral-700">
+                <div>
+                    <flux:input
+                        name="search"
+                        label="Search"
+                        placeholder="Search machine code or name..."
+                        value="{{ $search }}"
+                    />
+                </div>
+
+                <div>
+                    <flux:select name="status" label="Status">
+                        <option value="" @selected($status === '')>All</option>
+                        <option value="ON" @selected($status === 'ON')>ON</option>
+                        <option value="OFF" @selected($status === 'OFF')>OFF</option>
+                        <option value="inactive" @selected($status === 'inactive')>Inactive</option>
+                    </flux:select>
+                </div>
+
+                <div>
+                    <flux:select name="maintenance" label="Maintenance">
+                        <option value="" @selected($maintenance === '')>All</option>
+                        <option value="normal" @selected($maintenance === 'normal')>Normal</option>
+                        <option value="needs_maintenance" @selected($maintenance === 'needs_maintenance')>
+                            Needs Maintenance
+                        </option>
+                    </flux:select>
+                </div>
+
+                <div class="flex items-end gap-2">
+                    <flux:button type="submit" variant="primary">
+                        Filter
+                    </flux:button>
+
+                    <flux:button href="{{ route('dashboard') }}" variant="ghost">
+                        Reset
+                    </flux:button>
+                </div>
+            </form>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm">
                     <thead class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50">
