@@ -13,7 +13,7 @@
         </div>
 
         {{-- Filters --}}
-        <div class="rounded-xl border border-neutral-200 dark:border-neutral-700">
+        <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-900">
             <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
                 <flux:heading size="lg">
                     Filters
@@ -72,7 +72,11 @@
                 </flux:select>
 
                 <div class="flex items-end gap-2">
-                    <flux:button type="submit" variant="primary">
+                    <flux:button
+                        type="submit"
+                        variant="primary"
+                        icon="funnel"
+                    >
                         Filter
                     </flux:button>
 
@@ -92,34 +96,52 @@
             {{-- Statistics --}}
             <div class="grid gap-4 md:grid-cols-3">
 
-                <div class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
-                    <flux:text>Total Machines</flux:text>
+                <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-zinc-900">
+                    <flux:text>
+                        Total Machines
+                    </flux:text>
 
                     <flux:heading size="xl" class="mt-2">
                         {{ $totalMachines }}
                     </flux:heading>
+
+                    <flux:text class="mt-1 text-sm">
+                        Registered machines
+                    </flux:text>
                 </div>
 
-                <div class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
-                    <flux:text>Active Machines</flux:text>
+                <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-zinc-900">
+                    <flux:text>
+                        Active Machines
+                    </flux:text>
 
                     <flux:heading size="xl" class="mt-2">
                         {{ $activeMachines }}
                     </flux:heading>
+
+                    <flux:text class="mt-1 text-sm">
+                        Currently active
+                    </flux:text>
                 </div>
 
-                <div class="rounded-xl border border-neutral-200 p-5 dark:border-neutral-700">
-                    <flux:text>Needs Maintenance</flux:text>
+                <div class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-700 dark:bg-zinc-900">
+                    <flux:text>
+                        Needs Maintenance
+                    </flux:text>
 
                     <flux:heading size="xl" class="mt-2">
                         {{ $machinesNeedingMaintenance }}
                     </flux:heading>
+
+                    <flux:text class="mt-1 text-sm">
+                        Open maintenance records
+                    </flux:text>
                 </div>
 
             </div>
 
             {{-- Machine Monitoring --}}
-            <div class="overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-zinc-900">
 
                 <div class="border-b border-neutral-200 px-6 py-4 dark:border-neutral-700">
                     <flux:heading size="lg">
@@ -133,25 +155,25 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50">
+                        <thead class="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-zinc-800/50">
                             <tr>
-                                <th class="px-6 py-3 font-medium">
+                                <th class="whitespace-nowrap px-6 py-3 font-medium text-neutral-600 dark:text-neutral-300">
                                     Machine
                                 </th>
 
-                                <th class="px-6 py-3 font-medium">
+                                <th class="whitespace-nowrap px-6 py-3 font-medium text-neutral-600 dark:text-neutral-300">
                                     Location
                                 </th>
 
-                                <th class="px-6 py-3 font-medium">
+                                <th class="whitespace-nowrap px-6 py-3 font-medium text-neutral-600 dark:text-neutral-300">
                                     Status
                                 </th>
 
-                                <th class="px-6 py-3 font-medium">
+                                <th class="whitespace-nowrap px-6 py-3 font-medium text-neutral-600 dark:text-neutral-300">
                                     Temperature
                                 </th>
 
-                                <th class="px-6 py-3 font-medium">
+                                <th class="whitespace-nowrap px-6 py-3 font-medium text-neutral-600 dark:text-neutral-300">
                                     Maintenance
                                 </th>
                             </tr>
@@ -159,56 +181,58 @@
 
                         <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
                             @forelse ($machines as $machine)
-                                <tr>
+                                <tr class="transition-colors hover:bg-neutral-50 dark:hover:bg-zinc-800/50">
                                     <td class="px-6 py-4">
-                                        <div class="font-medium">
+                                        <div class="font-medium text-neutral-900 dark:text-white">
                                             {{ $machine->code }}
                                         </div>
 
-                                        <div class="text-neutral-500">
+                                        <div class="mt-0.5 text-neutral-500 dark:text-neutral-400">
                                             {{ $machine->name }}
                                         </div>
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 text-neutral-700 dark:text-neutral-300">
                                         {{ $machine->location }}
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="whitespace-nowrap px-6 py-4">
                                         @if (! $machine->is_active)
-                                            <flux:badge variant="danger">
+                                            <flux:badge variant="danger" size="sm">
                                                 Inactive
                                             </flux:badge>
                                         @elseif (! $machine->latestSensorData)
-                                            <flux:badge variant="warning">
+                                            <flux:badge variant="warning" size="sm">
                                                 No Data
                                             </flux:badge>
                                         @elseif ($machine->latestSensorData->status === 'ON')
-                                            <flux:badge variant="success">
+                                            <flux:badge variant="success" size="sm">
                                                 ON
                                             </flux:badge>
                                         @else
-                                            <flux:badge variant="danger">
+                                            <flux:badge variant="danger" size="sm">
                                                 OFF
                                             </flux:badge>
                                         @endif
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="whitespace-nowrap px-6 py-4 font-medium text-neutral-700 dark:text-neutral-300">
                                         @if ($machine->latestSensorData?->temperature !== null)
                                             {{ number_format((float) $machine->latestSensorData->temperature, 2) }} °C
                                         @else
-                                            —
+                                            <span class="font-normal text-neutral-400">
+                                                -
+                                            </span>
                                         @endif
                                     </td>
 
-                                    <td class="px-6 py-4">
+                                    <td class="whitespace-nowrap px-6 py-4">
                                         @if ($machine->openMaintenanceRecord)
-                                            <flux:badge variant="danger">
+                                            <flux:badge variant="danger" size="sm">
                                                 Needs Maintenance
                                             </flux:badge>
                                         @else
-                                            <flux:badge variant="success">
+                                            <flux:badge variant="success" size="sm">
                                                 Normal
                                             </flux:badge>
                                         @endif
@@ -216,11 +240,29 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td
-                                        colspan="5"
-                                        class="px-6 py-8 text-center text-neutral-500"
-                                    >
-                                        No machines found.
+                                    <td colspan="5" class="px-6 py-12 text-center">
+                                        <div class="flex flex-col items-center gap-2">
+                                            <flux:icon.chart-bar class="size-8 text-neutral-400" />
+
+                                            <flux:heading size="sm">
+                                                No machines found
+                                            </flux:heading>
+
+                                            <flux:text>
+                                                No machines match the current filters.
+                                            </flux:text>
+
+                                            @if ($search || $status || $maintenance)
+                                                <flux:button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    href="{{ route('dashboard') }}"
+                                                    class="mt-2"
+                                                >
+                                                    Clear Filters
+                                                </flux:button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
