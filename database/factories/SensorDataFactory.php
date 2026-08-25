@@ -4,11 +4,12 @@ namespace Database\Factories;
 
 use App\Models\Machine;
 use App\Models\Sensor;
+use App\Models\SensorData;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\SensorData>
+ * @extends Factory<SensorData>
  */
 class SensorDataFactory extends Factory
 {

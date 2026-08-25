@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Machine;
+use App\Models\MaintenanceRecord;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MaintenanceRecord>
+ * @extends Factory<MaintenanceRecord>
  */
 class MaintenanceRecordFactory extends Factory
 {
