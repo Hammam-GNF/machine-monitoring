@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MaintenanceRecord;
 use App\Models\SensorData;
+use Illuminate\Support\Carbon;
 
 class MaintenanceDetectionService
 {
@@ -70,8 +71,12 @@ class MaintenanceDetectionService
             return;
         }
 
-        $offDurationInSeconds = $lastNonOffReading->recorded_at
-            ->diffInSeconds($sensorData->recorded_at);
+        $lastRecordedAt = $lastNonOffReading->recorded_at;
+        $currentRecordedAt = $sensorData->recorded_at;
+
+        /** @var Carbon $lastRecordedAt */
+        /** @var Carbon $currentRecordedAt */
+        $offDurationInSeconds = $lastRecordedAt->diffInSeconds($currentRecordedAt);
 
         if ($offDurationInSeconds <= self::MACHINE_OFF_MINUTES * 60) {
             return;

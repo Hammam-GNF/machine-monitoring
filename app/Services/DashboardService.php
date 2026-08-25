@@ -8,6 +8,10 @@ use Illuminate\Support\Collection;
 
 class DashboardService
 {
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, Machine>
+     */
     public function getMachines(array $filters = []): Collection
     {
         return Machine::query()
@@ -74,6 +78,10 @@ class DashboardService
             ->get();
     }
 
+    /**
+     * @param  Collection<int, Machine>  $machines
+     * @return array{total: int, active: int, maintenance: int}
+     */
     public function getStatistics(Collection $machines): array
     {
         return [
@@ -85,8 +93,7 @@ class DashboardService
 
             'maintenance' => $machines
                 ->filter(
-                    fn (Machine $machine) =>
-                        $machine->openMaintenanceRecord !== null
+                    fn (Machine $machine) => $machine->openMaintenanceRecord !== null
                 )
                 ->count(),
         ];

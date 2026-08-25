@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Machine;
+use App\Models\Sensor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Sensor>
+ * @extends Factory<Sensor>
  */
 class SensorFactory extends Factory
 {
@@ -14,7 +15,7 @@ class SensorFactory extends Factory
     {
         return [
             'machine_id' => Machine::factory(),
-            'code' => 'SNS-' . fake()->numerify('####'),
+            'code' => 'SNS-'.fake()->numerify('####'),
             'name' => fake()->randomElement([
                 'Temperature Sensor',
                 'Status Sensor',

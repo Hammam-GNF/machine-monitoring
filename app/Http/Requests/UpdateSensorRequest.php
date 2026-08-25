@@ -12,6 +12,7 @@ class UpdateSensorRequest extends FormRequest
         return $this->user()?->isAdmin() ?? false;
     }
 
+    /** @return array<string, mixed> */
     public function rules(): array
     {
         $sensor = $this->route('sensor');

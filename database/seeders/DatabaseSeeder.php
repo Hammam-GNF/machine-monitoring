@@ -4,15 +4,18 @@ namespace Database\Seeders;
 
 use App\Models\Machine;
 use App\Models\MaintenanceRecord;
+use App\Models\Sensor;
 use App\Models\SensorData;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
+
     /**
      * Seed the application's database.
      */
@@ -38,7 +41,7 @@ class DatabaseSeeder extends Seeder
             $machine->sensors()->createMany(
                 collect(range(1, 3))
                     ->map(fn () => [
-                        'code' => 'SNS-' . Str::upper(Str::random(6)),
+                        'code' => 'SNS-'.Str::upper(Str::random(6)),
                         'name' => fake()->randomElement([
                             'Temperature Sensor',
                             'Status Sensor',
@@ -55,13 +58,14 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $sensors = $machines
-            ->flatMap(fn (Machine $machine) => $machine->sensors)
-            ->values();
+        /** @var Collection<int, Sensor> $sensors */
+        $sensors = Sensor::query()
+            ->whereIn('machine_id', $machines->modelKeys())
+            ->get();
 
         SensorData::factory()
             ->count(1000)
-            ->state(function () use ($machines, $sensors) {
+            ->state(function () use ($sensors) {
                 $sensor = $sensors->random();
                 $recordedAt = fake()->dateTimeBetween('-30 days', 'now');
 

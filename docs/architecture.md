@@ -2,100 +2,112 @@
 
 ## 1. Architecture Overview
 
-Machine Monitoring System menggunakan Laravel sebagai application framework dan SQL Server sebagai relational database.
+Machine Monitoring System menggunakan Laravel sebagai application framework dan Microsoft SQL Server sebagai relational database.
 
-Architecture dibuat sederhana dan sesuai dengan kebutuhan MVP.
+Architecture dibuat sederhana dan mengikuti kebutuhan MVP. Business logic dipisahkan dari HTTP layer melalui service dan action classes ketika memang memberikan nilai.
+
+```text
+┌──────────────────────┐
+│   Web Browser / UI   │
+│ Dashboard            │
+│ Machine Management   │
+│ Sensor Management    │
+│ Production Report    │
+└──────────┬───────────┘
+           │ HTTP
+           ▼
+┌──────────────────────┐
+│       Laravel        │
+│                      │
+│ Authentication       │
+│ Controllers          │
+│ Form Requests        │
+│ Actions / Services   │
+│ Eloquent Models      │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│     SQL Server       │
+│                      │
+│ users                │
+│ machines             │
+│ sensors              │
+│ sensor_data          │
+│ maintenance_records  │
+└──────────────────────┘
+```
+
+IoT data follows a separate API flow:
 
 ```text
 IoT Simulator
-      │
-      │ HTTP POST
-      ▼
+     │
+     │ HTTP POST
+     ▼
 Laravel API
-      │
-      ▼
+     │
+     ▼
 Controller
-      │
-      ▼
+     │
+     ▼
 Form Request
-      │
-      ▼
-Service
-      │
-      ▼
-Eloquent Model
-      │
-      ▼
-SQL Server
+     │
+     ▼
+Action / Service
+     │
+     ├── Validate event
+     ├── Validate machine
+     ├── Validate sensor
+     ├── Check idempotency
+     └── Store sensor reading
+            │
+            ▼
+       SQL Server
 ```
-
-Application Interface:
-┌───────────────────────┐
-│       Web Browser     │
-│                       │
-│ Dashboard             │
-│ Machine Management    │
-│ Sensor Management     │
-│ Reports               │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│        Laravel        │
-│                       │
-│ Authentication        │
-│ Web Controllers       │
-│ API Controllers       │
-│ Form Requests         │
-│ Services              │
-│ Models                │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────┐
-│       SQL Server      │
-│                       │
-│ users                 │
-│ machines              │
-│ sensors               │
-│ sensor_data           │
-│ maintenance_records   │
-└───────────────────────┘
 
 ## 2. Application Layers
 
-HTTP Layer
+### HTTP Layer
 
-HTTP layer menangani request dari browser dan IoT simulator.
+The HTTP layer handles requests from the browser and IoT simulator.
 
-Komponen utama:
+Main responsibilities:
 
-Controllers
-Form Requests
-Middleware
-Service Layer
+- Controllers
+- Form Requests
+- Middleware
+- Authentication and authorization
 
-Service layer menangani business logic yang tidak seharusnya ditempatkan langsung pada controller.
+Controllers should coordinate the request flow and avoid containing unnecessary business logic.
 
-Contoh:
+### Application / Service Layer
 
-Sensor Data Processing
-Maintenance Detection
-Production Aggregation
+Actions and services contain business logic that should not be placed directly in controllers.
 
-Business logic akan ditambahkan sesuai kebutuhan masing-masing feature.
+Examples include:
 
-Model Layer
+- Sensor data processing
+- Maintenance detection
+- Production aggregation
+- Machine monitoring queries
 
-Eloquent Models bertanggung jawab terhadap:
+Abstractions are introduced only when they provide meaningful separation or reuse.
 
-Database representation
-Relationships
-Attribute handling
-Query interaction
+### Model Layer
 
-## 3. Recommended Directory Structure
+Eloquent Models represent database entities and handle:
 
+- Database representation
+- Relationships
+- Attribute handling
+- Query interaction
+
+## 3. Directory Structure
+
+The application follows a conventional Laravel structure with additional separation for actions and services.
+
+```text
 app/
 ├── Actions/
 ├── Concerns/
@@ -109,40 +121,65 @@ app/
 ├── Providers/
 └── Services/
 
-Struktur akan berkembang mengikuti kebutuhan feature.
+database/
+├── factories/
+├── migrations/
+└── seeders/
 
-Tidak menggunakan repository pattern, DTO, atau abstraction layer tambahan tanpa kebutuhan nyata.
+resources/
+├── css/
+├── js/
+└── views/
 
-## 4. Authentication
+routes/
+├── api.php
+└── web.php
 
-Authentication menggunakan Laravel Fortify yang sudah tersedia pada project foundation.
+tests/
+├── Feature/
+└── Unit/
+```
 
-Role disimpan langsung pada:
+The project intentionally avoids repository, DTO, or other abstraction layers when they do not provide meaningful value for the current scope.
 
+## 4. Authentication & Authorization
+
+Authentication uses Laravel Fortify.
+
+User roles are stored directly in:
+
+```text
 users.role
+```
 
-Role MVP:
+MVP roles:
 
-admin
-viewer
+- `admin`
+- `viewer`
 
-Authorization akan menggunakan Laravel authorization mechanism.
+Authorization uses Laravel's authorization mechanisms and policies to protect management actions.
 
 ## 5. Machine Monitoring Flow
 
+A machine is the root entity for monitoring.
+
+```text
 Machine
    │
-   ├── Sensor
-   │     │
-   │     ▼
-   │   Sensor Data
+   ├── 1:N ── Sensor
+   │            │
+   │            └── 1:N ── Sensor Data
    │
-   └── Maintenance Records
+   └── 1:N ── Maintenance Records
+```
 
-   Machine merupakan root entity untuk monitoring.
+A machine can have multiple sensors. Each sensor can produce multiple historical sensor readings.
 
 ## 6. IoT Data Flow
 
+The IoT simulator sends sensor readings through the sensor data API.
+
+```text
 IoT Simulator
       │
       │ POST /api/sensor-data
@@ -153,55 +190,68 @@ SensorDataController
 StoreSensorDataRequest
       │
       ▼
-SensorDataService
+Sensor Data Processing
       │
       ├── Validate event
       ├── Validate machine
       ├── Validate sensor
       ├── Check idempotency
-      └── Store sensor reading
+      └── Store reading
              │
              ▼
-        SQL Server
+         SQL Server
+```
 
-Maintenance detection akan menjadi bagian dari processing sensor data setelah foundation API tersedia.
+Sensor data processing is also the entry point for evaluating machine conditions that can trigger maintenance detection.
 
 ## 7. Idempotency
 
-Setiap sensor event memiliki:
+Every sensor event contains an:
 
+```text
 event_id
+```
 
-event_id harus unique.
+`event_id` must be unique.
 
-Jika event yang sama dikirim lebih dari satu kali, system tidak boleh membuat duplicate sensor data.
+If the same event is submitted more than once, the application must not create duplicate sensor data.
 
-Database unique constraint menjadi salah satu lapisan perlindungan terhadap duplicate event.
+Idempotency is protected at both the application and database levels. The `sensor_data.event_id` column has a unique constraint, providing database-level protection against duplicate events.
 
 ## 8. Maintenance Detection Flow
 
+Maintenance detection evaluates incoming sensor data against the defined machine conditions.
+
+```text
 Sensor Data
      │
      ▼
 Evaluate Machine Condition
      │
-     ├── 3 consecutive temperature > 80°C
-     │          │
-     │          ▼
-     │    HIGH_TEMPERATURE
+     ├── 3 consecutive temperature readings > 80°C
+     │             │
+     │             ▼
+     │      HIGH_TEMPERATURE
      │
-     └── OFF > 30 minutes
-                │
-                ▼
-          Maintenance Event
+     └── Machine OFF > 30 minutes
+                   │
+                   ▼
+            Maintenance Event
+                   │
+                   ▼
+         Maintenance Record
+```
 
-Maintenance record memiliki:
+Maintenance records support:
 
-open
-resolved
+- `open`
+- `resolved`
 
 ## 9. Reporting Flow
 
+Production reports are calculated from historical sensor data.
+
+```text
 sensor_data
      │
      ▼
@@ -214,59 +264,76 @@ Query + Aggregation
      │
      ▼
 Production Report
+```
 
-Shift tidak disimpan sebagai database entity.
+Shift is not stored as a database entity. It is calculated from `sensor_data.recorded_at`.
 
-Shift dihitung berdasarkan recorded_at.
+Shift definitions:
+
+- Shift 1: `06:00–14:00`
+- Shift 2: `14:00–22:00`
+- Shift 3: `22:00–06:00`
 
 ## 10. Performance Considerations
 
-Tabel utama untuk scalability adalah:
+The primary scalability concern is:
 
+```text
 sensor_data
+```
 
-Target data:
+The application is designed to support large sensor datasets, including 100,000+ records.
 
-100,000+
+Important query indexes include:
 
-Query utama harus menggunakan index yang sesuai dengan pola akses data.
-
-Index utama:
-
+```text
 (machine_id, recorded_at)
 (sensor_id, recorded_at)
 (recorded_at)
+```
 
-Performance optimization akan dilakukan pada Day 6 setelah data dalam jumlah besar tersedia.
+Pagination and query optimization are used for large result sets.
+
+A covering index is also included for relevant `recorded_at` access patterns.
+
+Performance validation covers:
+
+- Large dataset generation
+- Query execution
+- Index effectiveness
+- Pagination behavior
 
 ## 11. Testing Strategy
 
-Testing dilakukan menggunakan Pest.
+Testing uses Pest.
 
-Testing mencakup:
+### Feature Tests
 
-Feature Tests
-Authentication
-Machine management
-Sensor management
-Sensor data API
-Idempotency
-Authorization
-Maintenance detection
-Reporting
-Database Tests
-Relationships
-Constraints
-Unique fields
-Foreign keys
-Performance Testing
+Coverage includes:
 
-Dilakukan secara terpisah untuk:
+- Authentication
+- Machine management
+- Sensor management
+- Sensor data API
+- Idempotency
+- Authorization
+- Maintenance detection
+- Reporting
 
-Large dataset
-Query execution
-Index effectiveness
-Pagination
+### Database Tests
 
+Coverage includes:
 
----
+- Relationships
+- Constraints
+- Unique fields
+- Foreign keys
+
+### Performance Tests
+
+Performance validation is performed separately for:
+
+- Large datasets
+- Query execution
+- Index effectiveness
+- Pagination
