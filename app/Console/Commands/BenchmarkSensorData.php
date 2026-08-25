@@ -3,10 +3,12 @@
 namespace App\Console\Commands;
 
 use App\Models\Machine;
+use App\Models\SensorData;
 use App\Services\ProductionReportService;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 #[Signature('app:benchmark-sensor-data')]
 #[Description('Benchmark sensor data queries for performance testing')]
@@ -18,14 +20,14 @@ class BenchmarkSensorData extends Command
         $this->newLine();
 
         $this->line(
-            'Sensor data records: ' .
+            'Sensor data records: '.
             number_format(
-                \App\Models\SensorData::query()->count()
+                SensorData::query()->count()
             )
         );
 
         $this->line(
-            'Machines: ' .
+            'Machines: '.
             number_format(Machine::query()->count())
         );
 
@@ -95,7 +97,7 @@ class BenchmarkSensorData extends Command
 
         $durationMs = (hrtime(true) - $startedAt) / 1_000_000;
 
-        $count = $result instanceof \Illuminate\Support\Collection
+        $count = $result instanceof Collection
             ? $result->count()
             : null;
 

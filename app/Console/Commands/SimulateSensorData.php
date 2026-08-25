@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Machine;
 use App\Models\Sensor;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -25,6 +26,9 @@ class SimulateSensorData extends Command
 
             return self::FAILURE;
         }
+
+        /** @var Machine $machine */
+        $machine = $sensor->machine;
 
         $payload = [
             'event_id' => Str::uuid()->toString(),
@@ -53,7 +57,7 @@ class SimulateSensorData extends Command
         $this->table(
             ['Field', 'Value'],
             [
-                ['Machine', $sensor->machine->code],
+                ['Machine', $machine->code],
                 ['Sensor', $sensor->code],
                 ['Status', $payload['status']],
                 ['Temperature', $payload['temperature']],
