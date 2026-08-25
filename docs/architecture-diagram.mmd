@@ -1,0 +1,19 @@
+flowchart TD
+    B[Web Browser / UI] -->|HTTP| L[Laravel Application]
+    I[IoT Simulator] -->|POST /api/sensor-data| L
+
+    L --> A[Authentication / Authorization]
+    L --> C[Controllers]
+    L --> R[Form Requests]
+    L --> S[Actions / Services]
+    S --> M[Eloquent Models]
+    M --> DB[(Microsoft SQL Server)]
+
+    DB --> U[(users)]
+    DB --> MA[(machines)]
+    DB --> SE[(sensors)]
+    DB --> SD[(sensor_data)]
+    DB --> MR[(maintenance_records)]
+
+    SD --> MD[Maintenance Detection]
+    SD --> PR[Production Reporting]

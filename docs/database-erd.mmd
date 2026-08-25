@@ -1,0 +1,64 @@
+erDiagram
+    USERS {
+        bigint id PK
+        varchar name
+        varchar email UK
+        timestamp email_verified_at
+        varchar password
+        varchar role
+        varchar remember_token
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MACHINES {
+        bigint id PK
+        varchar code UK
+        varchar name
+        varchar location
+        varchar machine_type
+        date installed_at
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SENSORS {
+        bigint id PK
+        bigint machine_id FK
+        varchar code
+        varchar name
+        varchar type
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SENSOR_DATA {
+        bigint id PK
+        uuid event_id UK
+        bigint machine_id FK
+        bigint sensor_id FK
+        varchar status
+        decimal temperature
+        int output
+        datetime recorded_at
+        datetime received_at
+        timestamp created_at
+    }
+
+    MAINTENANCE_RECORDS {
+        bigint id PK
+        bigint machine_id FK
+        varchar reason
+        datetime detected_at
+        datetime resolved_at
+        varchar status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MACHINES ||--o{ SENSORS : has
+    MACHINES ||--o{ SENSOR_DATA : records
+    MACHINES ||--o{ MAINTENANCE_RECORDS : has
+    SENSORS ||--o{ SENSOR_DATA : produces
