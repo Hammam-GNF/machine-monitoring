@@ -46,11 +46,17 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the user's role.
+     */
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
+    /**
+     * Get the user's role.
+     */
     public function isViewer(): bool
     {
         return $this->role === 'viewer';
