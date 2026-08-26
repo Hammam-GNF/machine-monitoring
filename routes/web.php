@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardPollingController;
 use App\Http\Controllers\MachineController;
+use App\Http\Controllers\ProductionReportController;
 use App\Http\Controllers\SensorController;
 use Illuminate\Support\Facades\Route;
 
@@ -66,6 +67,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('sensors/{sensor}', [SensorController::class, 'show'])
         ->name('sensors.show');
+
+    Route::get('production-report', [ProductionReportController::class, 'index'])
+        ->name('production-report.index');
 });
 
 require __DIR__.'/settings.php';
