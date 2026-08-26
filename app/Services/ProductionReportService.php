@@ -3,44 +3,57 @@
 namespace App\Services;
 
 use App\Models\SensorData;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class ProductionReportService
 {
-    /** @return Collection<int, SensorData> */
     public function aggregateByDay(
         ?string $dateFrom = null,
         ?string $dateTo = null,
         ?int $shift = null,
-        ?int $machineId = null
-    ): Collection {
+        ?int $machineId = null,
+        int $perPage = 20
+    ): LengthAwarePaginator {
+        $dateExpression = $this->dateExpression();
+
         return $this->buildQuery($dateFrom, $dateTo, $shift, $machineId)
-            ->selectRaw($this->dateExpression().' as date')
+            ->select('machine_id')
+            ->selectRaw("{$dateExpression} as date")
             ->selectRaw('SUM(output) as total_output')
-            ->groupByRaw($this->dateExpression())
+            ->with('machine:id,code,name')
+            ->groupBy('machine_id')
+            ->groupByRaw($dateExpression)
             ->orderBy('date')
-            ->get();
+            ->orderBy('machine_id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
-    /** @return Collection<int, SensorData> */
     public function aggregateByMonth(
         ?string $dateFrom = null,
         ?string $dateTo = null,
         ?int $shift = null,
-        ?int $machineId = null
-    ): Collection {
+        ?int $machineId = null,
+        int $perPage = 20
+    ): LengthAwarePaginator {
         $monthExpression = $this->monthExpression();
         $yearExpression = $this->yearExpression();
 
         return $this->buildQuery($dateFrom, $dateTo, $shift, $machineId)
+            ->select('machine_id')
             ->selectRaw("{$yearExpression} as year")
             ->selectRaw("{$monthExpression} as month")
             ->selectRaw('SUM(output) as total_output')
+            ->with('machine:id,code,name')
+            ->groupBy('machine_id')
             ->groupByRaw("{$yearExpression}, {$monthExpression}")
             ->orderBy('year')
             ->orderBy('month')
-            ->get();
+            ->orderBy('machine_id')
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**
@@ -57,14 +70,29 @@ class ProductionReportService
         ?int $shift = null,
         ?int $machineId = null
     ): array {
-        $data = $this->buildQuery(
+        $query = $this->buildQuery(
             $dateFrom,
             $dateTo,
             $shift,
             $machineId
-        )->get(['output', 'status', 'recorded_at']);
+        );
 
-        if ($data->isEmpty()) {
+        $totalOutput = (int) (clone $query)->sum('output');
+
+        $totalReadings = (int) (clone $query)->count();
+
+        $onReadings = (int) (clone $query)
+            ->where('status', 'ON')
+            ->count();
+
+        $hours = $this->countRecordedHours(
+            $dateFrom,
+            $dateTo,
+            $shift,
+            $machineId
+        );
+
+        if ($totalReadings === 0) {
             return [
                 'total_output' => 0,
                 'average_output_per_hour' => 0.0,
@@ -73,29 +101,50 @@ class ProductionReportService
             ];
         }
 
-        $totalOutput = (int) $data->sum('output');
-
-        $hours = max(
-            1,
-            $data->pluck('recorded_at')
-                ->map(fn ($date) => $date->format('Y-m-d H'))
-                ->unique()
-                ->count()
-        );
-
-        $totalReadings = $data->count();
-        $onReadings = $data->where('status', 'ON')->count();
         $uptime = ($onReadings / $totalReadings) * 100;
 
         return [
             'total_output' => $totalOutput,
-            'average_output_per_hour' => round($totalOutput / $hours, 2),
+            'average_output_per_hour' => round(
+                $totalOutput / max(1, $hours),
+                2
+            ),
             'uptime_percentage' => round($uptime, 2),
             'downtime_percentage' => round(100 - $uptime, 2),
         ];
     }
 
-    /** @return Builder<SensorData> */
+    private function countRecordedHours(
+        ?string $dateFrom,
+        ?string $dateTo,
+        ?int $shift,
+        ?int $machineId
+    ): int {
+        $driver = DB::connection()->getDriverName();
+
+        $query = $this->buildQuery(
+            $dateFrom,
+            $dateTo,
+            $shift,
+            $machineId
+        );
+
+        $hourExpression = match ($driver) {
+            'sqlsrv' => 'CONVERT(varchar(13), recorded_at, 120)',
+            'sqlite' => "strftime('%Y-%m-%d %H', recorded_at)",
+            default => "DATE_FORMAT(recorded_at, '%Y-%m-%d %H')",
+        };
+
+        return (int) $query
+            ->selectRaw(
+                "COUNT(DISTINCT {$hourExpression}) as hours"
+            )
+            ->value('hours');
+    }
+
+    /**
+     * @return Builder<SensorData>
+     */
     private function buildQuery(
         ?string $dateFrom,
         ?string $dateTo,
@@ -135,16 +184,20 @@ class ProductionReportService
             );
     }
 
-    /** @param Builder<SensorData> $query */
+    /**
+     * @param  Builder<SensorData>  $query
+     */
     private function applyShiftFilter(
         Builder $query,
         int $shift
     ): void {
         match ($shift) {
-            1 => $query->whereTime('recorded_at', '>=', '06:00:00')
+            1 => $query
+                ->whereTime('recorded_at', '>=', '06:00:00')
                 ->whereTime('recorded_at', '<', '14:00:00'),
 
-            2 => $query->whereTime('recorded_at', '>=', '14:00:00')
+            2 => $query
+                ->whereTime('recorded_at', '>=', '14:00:00')
                 ->whereTime('recorded_at', '<', '22:00:00'),
 
             3 => $query->where(function (Builder $query) {

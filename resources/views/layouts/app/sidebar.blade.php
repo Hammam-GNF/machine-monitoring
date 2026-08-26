@@ -41,6 +41,15 @@
                     >
                         {{ __('Sensors') }}
                     </flux:sidebar.item>
+
+                    <flux:navlist.item
+                        icon="chart-bar"
+                        :href="route('production-report.index')"
+                        :current="request()->routeIs('production-report.*')"
+                        wire:navigate
+                    >
+                        Production Report
+                    </flux:navlist.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
