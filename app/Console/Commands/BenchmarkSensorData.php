@@ -9,6 +9,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 
 #[Signature('app:benchmark-sensor-data')]
 #[Description('Benchmark sensor data queries for performance testing')]
@@ -21,9 +22,7 @@ class BenchmarkSensorData extends Command
 
         $this->line(
             'Sensor data records: '.
-            number_format(
-                SensorData::query()->count()
-            )
+            number_format(SensorData::query()->count())
         );
 
         $this->line(
@@ -63,7 +62,7 @@ class BenchmarkSensorData extends Command
             function () {
                 return app(ProductionReportService::class)
                     ->aggregateByDay(
-                        dateFrom: now()->subDays(23)->toDateString(),
+                        dateFrom: now()->subDays(7)->toDateString(),
                         dateTo: now()->toDateString(),
                     );
             }
@@ -74,14 +73,13 @@ class BenchmarkSensorData extends Command
             function () {
                 return app(ProductionReportService::class)
                     ->aggregateByDay(
-                        dateFrom: now()->subDays(23)->toDateString(),
+                        dateFrom: now()->subDays(7)->toDateString(),
                         dateTo: now()->toDateString(),
                         shift: 1,
                     );
             }
         );
 
-        $this->newLine();
         $this->info('Benchmark completed.');
 
         return self::SUCCESS;
@@ -89,25 +87,63 @@ class BenchmarkSensorData extends Command
 
     private function benchmark(
         string $name,
-        callable $callback
+        callable $callback,
+        int $runs = 3
     ): void {
-        $startedAt = hrtime(true);
+        if ($runs < 1) {
+            throw new InvalidArgumentException(
+                'Benchmark runs must be at least 1.'
+            );
+        }
 
-        $result = $callback();
+        $result = null;
+        $times = [];
 
-        $durationMs = (hrtime(true) - $startedAt) / 1_000_000;
+        for ($i = 0; $i < $runs; $i++) {
+            $startedAt = hrtime(true);
+
+            $result = $callback();
+
+            $times[] = (hrtime(true) - $startedAt) / 1_000_000;
+        }
+
+        $average = array_sum($times) / count($times);
 
         $count = $result instanceof Collection
             ? $result->count()
             : null;
 
+        $this->line($name);
+
+        foreach ($times as $index => $time) {
+            $this->line(sprintf(
+                '  Run %d:     %8.2f ms',
+                $index + 1,
+                $time
+            ));
+        }
+
         $this->line(sprintf(
-            '%-50s %10.2f ms%s',
-            $name,
-            $durationMs,
-            $count !== null
-                ? sprintf(' (%s rows)', number_format($count))
-                : ''
+            '  Average:    %8.2f ms',
+            $average
         ));
+
+        $this->line(sprintf(
+            '  Min:        %8.2f ms',
+            min($times)
+        ));
+
+        $this->line(sprintf(
+            '  Max:        %8.2f ms',
+            max($times)
+        ));
+
+        if ($count !== null) {
+            $this->line(
+                '  Result rows: '.number_format($count)
+            );
+        }
+
+        $this->newLine();
     }
 }

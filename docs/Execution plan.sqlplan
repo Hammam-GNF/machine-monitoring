@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ShowPlanXML xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="1.599" Build="17.0.1000.7" xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementCompId="3" StatementEstRows="55731.2" StatementId="1" StatementOptmLevel="FULL" CardinalityEstimationModelVersion="170" StatementSubTreeCost="2.20204" StatementText="SELECT&#xD;&#xA;    CAST(recorded_at AS date) AS date,&#xD;&#xA;    SUM(output) AS total_output&#xD;&#xA;FROM sensor_data&#xD;&#xA;GROUP BY CAST(recorded_at AS date)&#xD;&#xA;ORDER BY date" StatementType="SELECT" QueryHash="0xC0A96C4CFE9E8A89" QueryPlanHash="0xC297C2F17D45B496" RetrievedFromCache="true" StatementSqlHandle="0x090044B7D8E999D6F14BEADCF1E14FBCA4900000000000000000000000000000000000000000000000000000" DatabaseContextSettingsId="7" ParentObjectId="0" StatementParameterizationType="0" SecurityPolicyApplied="false">
+          <StatementSetOptions ANSI_NULLS="true" ANSI_PADDING="true" ANSI_WARNINGS="true" ARITHABORT="true" CONCAT_NULL_YIELDS_NULL="true" NUMERIC_ROUNDABORT="false" QUOTED_IDENTIFIER="true" />
+          <QueryPlan DegreeOfParallelism="8" MemoryGrant="24320" CachedPlanSize="40" CompileTime="65" CompileCPU="46" CompileMemory="264">
+            <ThreadStat Branches="2" UsedThreads="16">
+              <ThreadReservation NodeId="0" ReservedThreads="16" />
+            </ThreadStat>
+            <Warnings>
+              <Wait WaitType="Memory Grant" WaitTime="8" />
+            </Warnings>
+            <MemoryGrantInfo SerialRequiredMemory="1536" SerialDesiredMemory="11696" RequiredMemory="14144" DesiredMemory="24320" RequestedMemory="24320" GrantWaitTime="7730" GrantedMemory="24320" MaxUsedMemory="4272" MaxQueryMemory="188072" />
+            <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="102032" EstimatedPagesCached="51016" EstimatedAvailableDegreeOfParallelism="4" MaxCompileMemory="6680" />
+            <OptimizerStatsUsage>
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_recorded_at_index]" ModificationCount="0" SamplingPercent="98.2554" LastUpdate="2026-08-25T19:11:09.16" />
+            </OptimizerStatsUsage>
+            <WaitStats>
+              <Wait WaitType="LATCH_EX" WaitTimeMs="1054" WaitCount="506" />
+              <Wait WaitType="CXSYNC_PORT" WaitTimeMs="209" WaitCount="25" />
+              <Wait WaitType="CMEMTHREAD" WaitTimeMs="23" WaitCount="29" />
+              <Wait WaitType="SESSION_WAIT_STATS_CHILDREN" WaitTimeMs="16" WaitCount="20" />
+              <Wait WaitType="CXSYNC_CONSUMER" WaitTimeMs="13" WaitCount="7" />
+              <Wait WaitType="MEMORY_ALLOCATION_EXT" WaitTimeMs="9" WaitCount="694" />
+              <Wait WaitType="RESERVED_MEMORY_ALLOCATION_EXT" WaitTimeMs="8" WaitCount="549" />
+              <Wait WaitType="EXECSYNC" WaitTimeMs="2" WaitCount="1" />
+              <Wait WaitType="PAGEIOLATCH_SH" WaitTimeMs="1" WaitCount="4" />
+            </WaitStats>
+            <QueryTimeStats CpuTime="455" ElapsedTime="188" />
+            <RelOp AvgRowSize="14" EstimateCPU="0.342873" EstimateIO="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="55731.2" LogicalOp="Gather Streams" NodeId="0" Parallel="true" PhysicalOp="Parallelism" EstimatedTotalSubtreeCost="2.20204">
+              <OutputList>
+                <ColumnReference Column="Expr1002" />
+                <ColumnReference Column="Expr1003" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="31" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="178" ActualCPUms="1" />
+              </RunTimeInformation>
+              <Parallelism>
+                <OrderBy>
+                  <OrderByColumn Ascending="true">
+                    <ColumnReference Column="Expr1002" />
+                  </OrderByColumn>
+                </OrderBy>
+                <RelOp AvgRowSize="14" EstimateCPU="1.0083" EstimateIO="0.00281532" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="55731.2" LogicalOp="Sort" NodeId="1" Parallel="true" PhysicalOp="Sort" EstimatedTotalSubtreeCost="1.85917">
+                  <OutputList>
+                    <ColumnReference Column="Expr1002" />
+                    <ColumnReference Column="Expr1003" />
+                  </OutputList>
+                  <MemoryFractions Input="0.582677" Output="1" />
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="8" ActualRebinds="1" ActualRewinds="0" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="7" ActualRebinds="1" ActualRewinds="0" ActualRows="5" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="172" ActualCPUms="19" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="6" ActualRebinds="1" ActualRewinds="0" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="5" ActualRebinds="1" ActualRewinds="0" ActualRows="3" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="9" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="4" ActualRebinds="1" ActualRewinds="0" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="3" ActualRebinds="1" ActualRewinds="0" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="17" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="2" ActualRebinds="1" ActualRewinds="0" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="16" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="1" ActualRebinds="1" ActualRewinds="0" ActualRows="3" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="12" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="1248" OutputMemoryGrant="1400" UsedMemoryGrant="16" />
+                    <RunTimeCountersPerThread Thread="0" ActualRebinds="0" ActualRewinds="0" ActualRows="0" Batches="0" ActualEndOfScans="0" ActualExecutions="0" ActualExecutionMode="Row" ActualElapsedms="0" ActualCPUms="0" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="0" OutputMemoryGrant="0" UsedMemoryGrant="0" />
+                  </RunTimeInformation>
+                  <Sort Distinct="false">
+                    <OrderBy>
+                      <OrderByColumn Ascending="true">
+                        <ColumnReference Column="Expr1002" />
+                      </OrderByColumn>
+                    </OrderBy>
+                    <RelOp AvgRowSize="14" EstimateCPU="0.340522" EstimateIO="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="55731.2" LogicalOp="Aggregate" NodeId="2" Parallel="true" PhysicalOp="Hash Match" EstimatedTotalSubtreeCost="0.848054">
+                      <OutputList>
+                        <ColumnReference Column="Expr1002" />
+                        <ColumnReference Column="Expr1003" />
+                      </OutputList>
+                      <MemoryFractions Input="1" Output="0.417323" />
+                      <RunTimeInformation>
+                        <RunTimeCountersPerThread Thread="8" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="352" />
+                        <RunTimeCountersPerThread Thread="7" ActualRows="5" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="171" ActualCPUms="18" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="288" />
+                        <RunTimeCountersPerThread Thread="6" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="352" />
+                        <RunTimeCountersPerThread Thread="5" ActualRows="3" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="167" ActualCPUms="8" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="216" />
+                        <RunTimeCountersPerThread Thread="4" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="14" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="288" />
+                        <RunTimeCountersPerThread Thread="3" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="169" ActualCPUms="17" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="280" />
+                        <RunTimeCountersPerThread Thread="2" ActualRows="4" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="167" ActualCPUms="16" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="352" />
+                        <RunTimeCountersPerThread Thread="1" ActualRows="3" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="168" ActualCPUms="12" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="2296" OutputMemoryGrant="1552" UsedMemoryGrant="280" />
+                        <RunTimeCountersPerThread Thread="0" ActualRows="0" Batches="0" ActualEndOfScans="0" ActualExecutions="0" ActualExecutionMode="Row" ActualElapsedms="0" ActualCPUms="0" ActualScans="0" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" InputMemoryGrant="0" OutputMemoryGrant="0" UsedMemoryGrant="0" />
+                      </RunTimeInformation>
+                      <Hash>
+                        <DefinedValues>
+                          <DefinedValue>
+                            <ColumnReference Column="Expr1003" />
+                            <ScalarOperator ScalarString="SUM([machine_monitoring].[dbo].[sensor_data].[output])">
+                              <Aggregate AggType="SUM" Distinct="false">
+                                <ScalarOperator>
+                                  <Identifier>
+                                    <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="output" />
+                                  </Identifier>
+                                </ScalarOperator>
+                              </Aggregate>
+                            </ScalarOperator>
+                          </DefinedValue>
+                        </DefinedValues>
+                        <HashKeysBuild>
+                          <ColumnReference Column="Expr1002" />
+                        </HashKeysBuild>
+                        <BuildResidual>
+                          <ScalarOperator ScalarString="[Expr1002] = [Expr1002]">
+                            <Compare CompareOp="IS">
+                              <ScalarOperator>
+                                <Identifier>
+                                  <ColumnReference Column="Expr1002" />
+                                </Identifier>
+                              </ScalarOperator>
+                              <ScalarOperator>
+                                <Identifier>
+                                  <ColumnReference Column="Expr1002" />
+                                </Identifier>
+                              </ScalarOperator>
+                            </Compare>
+                          </ScalarOperator>
+                        </BuildResidual>
+                        <RelOp AvgRowSize="14" EstimateCPU="0.105178" EstimateIO="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="101000" LogicalOp="Repartition Streams" NodeId="3" Parallel="true" PhysicalOp="Parallelism" EstimatedTotalSubtreeCost="0.507531">
+                          <OutputList>
+                            <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="output" />
+                            <ColumnReference Column="Expr1002" />
+                          </OutputList>
+                          <RunTimeInformation>
+                            <RunTimeCountersPerThread Thread="8" ActualRows="13499" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="158" ActualCPUms="3" />
+                            <RunTimeCountersPerThread Thread="7" ActualRows="16752" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="156" ActualCPUms="2" />
+                            <RunTimeCountersPerThread Thread="6" ActualRows="11558" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="156" ActualCPUms="2" />
+                            <RunTimeCountersPerThread Thread="5" ActualRows="8287" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="160" ActualCPUms="1" />
+                            <RunTimeCountersPerThread Thread="4" ActualRows="13464" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="156" ActualCPUms="2" />
+                            <RunTimeCountersPerThread Thread="3" ActualRows="13511" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="155" ActualCPUms="3" />
+                            <RunTimeCountersPerThread Thread="2" ActualRows="13516" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="154" ActualCPUms="2" />
+                            <RunTimeCountersPerThread Thread="1" ActualRows="10413" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="159" ActualCPUms="3" />
+                            <RunTimeCountersPerThread Thread="0" ActualRows="0" Batches="0" ActualEndOfScans="0" ActualExecutions="0" ActualExecutionMode="Row" ActualElapsedms="0" ActualCPUms="0" />
+                          </RunTimeInformation>
+                          <Parallelism PartitioningType="Hash">
+                            <PartitionColumns>
+                              <ColumnReference Column="Expr1002" />
+                            </PartitionColumns>
+                            <RelOp AvgRowSize="14" EstimateCPU="0.002525" EstimateIO="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="101000" LogicalOp="Compute Scalar" NodeId="4" Parallel="true" PhysicalOp="Compute Scalar" EstimatedTotalSubtreeCost="0.402353">
+                              <OutputList>
+                                <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="output" />
+                                <ColumnReference Column="Expr1002" />
+                              </OutputList>
+                              <ComputeScalar>
+                                <DefinedValues>
+                                  <DefinedValue>
+                                    <ColumnReference Column="Expr1002" />
+                                    <ScalarOperator ScalarString="CONVERT(date,[machine_monitoring].[dbo].[sensor_data].[recorded_at],0)">
+                                      <Convert DataType="date" Style="0" Implicit="false">
+                                        <ScalarOperator>
+                                          <Identifier>
+                                            <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                                          </Identifier>
+                                        </ScalarOperator>
+                                      </Convert>
+                                    </ScalarOperator>
+                                  </DefinedValue>
+                                </DefinedValues>
+                                <RelOp AvgRowSize="19" EstimateCPU="0.0278143" EstimateIO="0.372014" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="101000" EstimatedRowsRead="101000" LogicalOp="Index Scan" NodeId="5" Parallel="true" PhysicalOp="Index Scan" EstimatedTotalSubtreeCost="0.399828" TableCardinality="101000">
+                                  <OutputList>
+                                    <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="output" />
+                                    <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                                  </OutputList>
+                                  <RunTimeInformation>
+                                    <RunTimeCountersPerThread Thread="8" ActualRows="12652" ActualRowsRead="12652" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="150" ActualCPUms="13" ActualScans="1" ActualLogicalReads="252" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="7" ActualRows="12481" ActualRowsRead="12481" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="149" ActualCPUms="14" ActualScans="1" ActualLogicalReads="244" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="6" ActualRows="12527" ActualRowsRead="12527" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="151" ActualCPUms="38" ActualScans="1" ActualLogicalReads="247" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="5" ActualRows="12883" ActualRowsRead="12883" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="150" ActualCPUms="14" ActualScans="1" ActualLogicalReads="256" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="4" ActualRows="12596" ActualRowsRead="12596" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="151" ActualCPUms="30" ActualScans="1" ActualLogicalReads="252" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="3" ActualRows="12580" ActualRowsRead="12580" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="150" ActualCPUms="15" ActualScans="1" ActualLogicalReads="244" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="2" ActualRows="12392" ActualRowsRead="12392" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="150" ActualCPUms="14" ActualScans="1" ActualLogicalReads="248" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="1" ActualRows="12889" ActualRowsRead="12889" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="150" ActualCPUms="14" ActualScans="1" ActualLogicalReads="252" ActualPhysicalReads="0" ActualReadAheads="0" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                    <RunTimeCountersPerThread Thread="0" ActualRows="0" Batches="0" ActualEndOfScans="0" ActualExecutions="0" ActualExecutionMode="Row" ActualElapsedms="0" ActualCPUms="0" ActualScans="1" ActualLogicalReads="5" ActualPhysicalReads="3" ActualReadAheads="499" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                                  </RunTimeInformation>
+                                  <IndexScan Ordered="false" ForcedIndex="false" ForceSeek="false" ForceScan="false" NoExpandHint="false" Storage="RowStore">
+                                    <DefinedValues>
+                                      <DefinedValue>
+                                        <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="output" />
+                                      </DefinedValue>
+                                      <DefinedValue>
+                                        <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                                      </DefinedValue>
+                                    </DefinedValues>
+                                    <Object Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Index="[sensor_data_recorded_at_output_index]" IndexKind="NonClustered" Storage="RowStore" />
+                                  </IndexScan>
+                                </RelOp>
+                              </ComputeScalar>
+                            </RelOp>
+                          </Parallelism>
+                        </RelOp>
+                      </Hash>
+                    </RelOp>
+                  </Sort>
+                </RelOp>
+              </Parallelism>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementCompId="4" StatementEstRows="10" StatementId="2" StatementOptmLevel="FULL" StatementOptmEarlyAbortReason="GoodEnoughPlanFound" CardinalityEstimationModelVersion="170" StatementSubTreeCost="0.560913" StatementText="SELECT&#xD;&#xA;    machine_id,&#xD;&#xA;    MAX(recorded_at) AS latest_recorded_at&#xD;&#xA;FROM sensor_data&#xD;&#xA;GROUP BY machine_id" StatementType="SELECT" QueryHash="0x5345F7EE9B4F034E" QueryPlanHash="0x4D31DD9B4F80CBE5" RetrievedFromCache="true" StatementSqlHandle="0x0900765999C7066D6BE20E842B156695B2140000000000000000000000000000000000000000000000000000" DatabaseContextSettingsId="7" ParentObjectId="0" StatementParameterizationType="0" SecurityPolicyApplied="false">
+          <StatementSetOptions ANSI_NULLS="true" ANSI_PADDING="true" ANSI_WARNINGS="true" ARITHABORT="true" CONCAT_NULL_YIELDS_NULL="true" NUMERIC_ROUNDABORT="false" QUOTED_IDENTIFIER="true" />
+          <QueryPlan DegreeOfParallelism="1" CachedPlanSize="24" CompileTime="15" CompileCPU="14" CompileMemory="208">
+            <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0" GrantedMemory="0" MaxUsedMemory="0" />
+            <OptimizerHardwareDependentProperties EstimatedAvailableMemoryGrant="102032" EstimatedPagesCached="51016" EstimatedAvailableDegreeOfParallelism="4" MaxCompileMemory="6680" />
+            <OptimizerStatsUsage>
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_machine_id_recorded_at_index]" ModificationCount="0" SamplingPercent="96.8832" LastUpdate="2026-08-25T19:11:08.96" />
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[PK__sensor_d__3213E83F19E8E094]" ModificationCount="0" SamplingPercent="97.5871" LastUpdate="2026-08-25T19:11:09.62" />
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_recorded_at_output_index]" ModificationCount="0" SamplingPercent="98.2554" LastUpdate="2026-08-25T19:11:09.96" />
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_sensor_id_recorded_at_index]" ModificationCount="0" SamplingPercent="96.8832" LastUpdate="2026-08-25T19:11:09.4" />
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_event_id_unique]" ModificationCount="0" SamplingPercent="96.8832" LastUpdate="2026-08-25T19:11:09.8" />
+              <StatisticsInfo Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Statistics="[sensor_data_recorded_at_index]" ModificationCount="0" SamplingPercent="98.2554" LastUpdate="2026-08-25T19:11:09.16" />
+            </OptimizerStatsUsage>
+            <WaitStats>
+              <Wait WaitType="SOS_SCHEDULER_YIELD" WaitTimeMs="4" WaitCount="23" />
+              <Wait WaitType="MEMORY_ALLOCATION_EXT" WaitTimeMs="1" WaitCount="535" />
+              <Wait WaitType="PAGEIOLATCH_SH" WaitTimeMs="1" WaitCount="5" />
+            </WaitStats>
+            <QueryTimeStats CpuTime="103" ElapsedTime="104" />
+            <RelOp AvgRowSize="23" EstimateCPU="0.060605" EstimateIO="0" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="10" LogicalOp="Aggregate" NodeId="0" Parallel="false" PhysicalOp="Stream Aggregate" EstimatedTotalSubtreeCost="0.560913">
+              <OutputList>
+                <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="machine_id" />
+                <ColumnReference Column="Expr1002" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="10" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="104" ActualCPUms="103" />
+              </RunTimeInformation>
+              <StreamAggregate>
+                <DefinedValues>
+                  <DefinedValue>
+                    <ColumnReference Column="Expr1002" />
+                    <ScalarOperator ScalarString="MAX([machine_monitoring].[dbo].[sensor_data].[recorded_at])">
+                      <Aggregate AggType="MAX" Distinct="false">
+                        <ScalarOperator>
+                          <Identifier>
+                            <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                          </Identifier>
+                        </ScalarOperator>
+                      </Aggregate>
+                    </ScalarOperator>
+                  </DefinedValue>
+                </DefinedValues>
+                <GroupBy>
+                  <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="machine_id" />
+                </GroupBy>
+                <RelOp AvgRowSize="23" EstimateCPU="0.111257" EstimateIO="0.389051" EstimateRebinds="0" EstimateRewinds="0" EstimatedExecutionMode="Row" EstimateRows="101000" EstimatedRowsRead="101000" LogicalOp="Index Scan" NodeId="1" Parallel="false" PhysicalOp="Index Scan" EstimatedTotalSubtreeCost="0.500308" TableCardinality="101000">
+                  <OutputList>
+                    <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="machine_id" />
+                    <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="101000" ActualRowsRead="101000" Batches="0" ActualEndOfScans="1" ActualExecutions="1" ActualExecutionMode="Row" ActualElapsedms="71" ActualCPUms="70" ActualScans="1" ActualLogicalReads="527" ActualPhysicalReads="3" ActualReadAheads="523" ActualLobLogicalReads="0" ActualLobPhysicalReads="0" ActualLobReadAheads="0" />
+                  </RunTimeInformation>
+                  <IndexScan Ordered="true" ScanDirection="FORWARD" ForcedIndex="false" ForceSeek="false" ForceScan="false" NoExpandHint="false" Storage="RowStore">
+                    <DefinedValues>
+                      <DefinedValue>
+                        <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="machine_id" />
+                      </DefinedValue>
+                      <DefinedValue>
+                        <ColumnReference Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Column="recorded_at" />
+                      </DefinedValue>
+                    </DefinedValues>
+                    <Object Database="[machine_monitoring]" Schema="[dbo]" Table="[sensor_data]" Index="[sensor_data_machine_id_recorded_at_index]" IndexKind="NonClustered" Storage="RowStore" />
+                  </IndexScan>
+                </RelOp>
+              </StreamAggregate>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

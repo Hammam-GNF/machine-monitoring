@@ -3,22 +3,42 @@
 namespace App\Console\Commands;
 
 use App\Models\Sensor;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-#[Signature('app:generate-sensor-data {--sensordata=100000 : Number of sensor data records to generate}')]
-#[Description('Generate a large sensor dataset for performance testing')]
+#[Signature(
+    'app:generate-sensor-data
+    {--count=100000 : Number of sensor data records to generate}
+    {--chunk=200 : Number of records inserted per batch}
+    {--days=30 : Historical period in days}'
+)]
+#[Description('Generate large-scale historical IoT sensor data for performance testing')]
 class GenerateSensorData extends Command
 {
     public function handle(): int
     {
-        $total = (int) $this->option('sensordata');
+        $count = (int) $this->option('count');
+        $chunkSize = (int) $this->option('chunk');
+        $days = (int) $this->option('days');
 
-        if ($total < 1) {
-            $this->error('The --sensordata value must be greater than 0.');
+        if ($count < 1) {
+            $this->error('Count must be greater than 0.');
+
+            return self::FAILURE;
+        }
+
+        if ($chunkSize < 1) {
+            $this->error('Chunk size must be greater than 0.');
+
+            return self::FAILURE;
+        }
+
+        if ($days < 1) {
+            $this->error('Days must be greater than 0.');
 
             return self::FAILURE;
         }
@@ -33,24 +53,39 @@ class GenerateSensorData extends Command
             return self::FAILURE;
         }
 
-        $chunkSize = 200;
+        $now = CarbonImmutable::now();
+        $startTimestamp = (int) $now->subDays($days)->timestamp;
+        $endTimestamp = (int) $now->timestamp;
+
+        $startedAt = hrtime(true);
         $generated = 0;
 
-        $this->info("Generating {$total} sensor data records...");
+        $this->info(
+            sprintf(
+                'Generating %s sensor data records in batches of %s...',
+                number_format($count),
+                number_format($chunkSize)
+            )
+        );
 
-        $bar = $this->output->createProgressBar($total);
-        $bar->start();
-
-        while ($generated < $total) {
-            $count = min($chunkSize, $total - $generated);
-            $now = now();
-
+        while ($generated < $count) {
+            $batchSize = min($chunkSize, $count - $generated);
             $rows = [];
 
-            for ($i = 0; $i < $count; $i++) {
+            for ($i = 0; $i < $batchSize; $i++) {
                 $sensor = $sensors->random();
-                $recordedAt = now()->subDays(random_int(0, 30))
-                    ->subSeconds(random_int(0, 86399));
+
+                $recordedAt = CarbonImmutable::createFromTimestamp(
+                    random_int($startTimestamp, $endTimestamp)
+                );
+
+                $receivedAt = $recordedAt->addSeconds(
+                    random_int(0, 30)
+                );
+
+                if ($receivedAt->greaterThan($now)) {
+                    $receivedAt = $now;
+                }
 
                 $rows[] = [
                     'event_id' => Str::uuid()->toString(),
@@ -65,21 +100,43 @@ class GenerateSensorData extends Command
                     ),
                     'output' => random_int(80, 150),
                     'recorded_at' => $recordedAt,
-                    'received_at' => $now,
-                    'created_at' => $now,
+                    'received_at' => $receivedAt,
+                    'created_at' => $receivedAt,
                 ];
             }
 
             DB::table('sensor_data')->insert($rows);
 
-            $generated += $count;
-            $bar->advance($count);
+            $generated += $batchSize;
+
+            $this->output->write(
+                "\rGenerated: ".number_format($generated).' / '.number_format($count)
+            );
         }
 
-        $bar->finish();
+        $durationMs = (hrtime(true) - $startedAt) / 1_000_000;
+        $durationSeconds = $durationMs / 1000;
 
         $this->newLine(2);
-        $this->info("Successfully generated {$total} sensor data records.");
+
+        $this->info('Sensor data generation completed.');
+
+        $this->table(
+            ['Metric', 'Value'],
+            [
+                ['Records generated', number_format($generated)],
+                ['Batch size', number_format($chunkSize)],
+                ['Historical period', $days.' days'],
+                ['Duration', number_format($durationSeconds, 2).' seconds'],
+                [
+                    'Throughput',
+                    number_format(
+                        $generated / max($durationSeconds, 0.001),
+                        0
+                    ).' rows/sec',
+                ],
+            ]
+        );
 
         return self::SUCCESS;
     }
