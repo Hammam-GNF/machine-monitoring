@@ -244,3 +244,74 @@ test('invalid shift is rejected', function () {
             ->aggregateByDay(shift: 4)
     )->toThrow(InvalidArgumentException::class);
 });
+
+test('production metrics can be calculated', function () {
+    $machine = Machine::factory()->create();
+    $sensor = Sensor::factory()->create([
+        'machine_id' => $machine->id,
+    ]);
+
+    foreach ([
+        ['output' => 100, 'status' => 'ON', 'recorded_at' => '2026-08-24 06:00:00'],
+        ['output' => 200, 'status' => 'ON', 'recorded_at' => '2026-08-24 07:00:00'],
+        ['output' => 300, 'status' => 'OFF', 'recorded_at' => '2026-08-24 08:00:00'],
+        ['output' => 400, 'status' => 'ON', 'recorded_at' => '2026-08-24 09:00:00'],
+    ] as $reading) {
+        SensorData::factory()->create([
+            'machine_id' => $machine->id,
+            'sensor_id' => $sensor->id,
+            'output' => $reading['output'],
+            'status' => $reading['status'],
+            'recorded_at' => $reading['recorded_at'],
+        ]);
+    }
+
+    $metrics = app(ProductionReportService::class)->metrics(
+        dateFrom: '2026-08-24',
+        dateTo: '2026-08-24',
+        machineId: $machine->id
+    );
+
+    expect($metrics['total_output'])->toBe(1000)
+        ->and($metrics['average_output_per_hour'])->toBe(250.0)
+        ->and($metrics['uptime_percentage'])->toBe(75.0)
+        ->and($metrics['downtime_percentage'])->toBe(25.0);
+});
+
+test('production metrics can be filtered by machine', function () {
+    $machineOne = Machine::factory()->create();
+    $machineTwo = Machine::factory()->create();
+
+    $sensorOne = Sensor::factory()->create([
+        'machine_id' => $machineOne->id,
+    ]);
+
+    $sensorTwo = Sensor::factory()->create([
+        'machine_id' => $machineTwo->id,
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machineOne->id,
+        'sensor_id' => $sensorOne->id,
+        'output' => 100,
+        'status' => 'ON',
+        'recorded_at' => '2026-08-24 10:00:00',
+    ]);
+
+    SensorData::factory()->create([
+        'machine_id' => $machineTwo->id,
+        'sensor_id' => $sensorTwo->id,
+        'output' => 500,
+        'status' => 'ON',
+        'recorded_at' => '2026-08-24 10:00:00',
+    ]);
+
+    $metrics = app(ProductionReportService::class)->metrics(
+        dateFrom: '2026-08-24',
+        dateTo: '2026-08-24',
+        machineId: $machineOne->id
+    );
+
+    expect($metrics['total_output'])->toBe(100)
+        ->and($metrics['uptime_percentage'])->toBe(100.0);
+});
