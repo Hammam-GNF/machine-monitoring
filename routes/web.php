@@ -70,9 +70,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('production-report', [ProductionReportController::class, 'index'])
         ->name('production-report.index');
-
-    Route::get('production-report/export', [ProductionReportController::class, 'export'])
-        ->name('production-report.export');
 });
 
 require __DIR__.'/settings.php';
