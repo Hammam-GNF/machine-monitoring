@@ -16,6 +16,8 @@ class DashboardPollingController extends Controller
     {
         $filters = $request->only([
             'search',
+            'location',
+            'machine_type',
             'status',
             'active',
             'maintenance',
