@@ -268,6 +268,56 @@ test('dashboard can filter machines without open maintenance', function () {
         ->assertDontSee('MC-MAINT');
 });
 
+test('dashboard can filter machines by location', function () {
+    $user = User::factory()->create();
+
+    Machine::factory()->create([
+        'code' => 'MC-LINE-1',
+        'location' => 'Line 1',
+    ]);
+
+    Machine::factory()->create([
+        'code' => 'MC-LINE-2',
+        'location' => 'Line 2',
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'location' => 'Line 1',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-LINE-1')
+        ->assertDontSee('MC-LINE-2');
+});
+
+test('dashboard can filter machines by machine type', function () {
+    $user = User::factory()->create();
+
+    Machine::factory()->create([
+        'code' => 'MC-CNC',
+        'machine_type' => 'CNC',
+    ]);
+
+    Machine::factory()->create([
+        'code' => 'MC-PRESS',
+        'machine_type' => 'PRESS',
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard', [
+        'machine_type' => 'CNC',
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertSee('MC-CNC')
+        ->assertDontSee('MC-PRESS');
+});
+
 test('dashboard preserves filters in the rendered view', function () {
     $user = User::factory()->create();
 
@@ -275,6 +325,8 @@ test('dashboard preserves filters in the rendered view', function () {
         'code' => 'MC-ON',
         'name' => 'Production Machine',
         'is_active' => true,
+        'location' => 'Line 1',
+        'machine_type' => 'CNC',
     ]);
 
     $this->actingAs($user);
@@ -289,7 +341,9 @@ test('dashboard preserves filters in the rendered view', function () {
         ->assertOk()
         ->assertViewHas('search', 'MC-ON')
         ->assertViewHas('status', 'ON')
-        ->assertViewHas('maintenance', 'normal');
+        ->assertViewHas('maintenance', 'normal')
+        ->assertViewHas('location', '')
+        ->assertViewHas('machine_type', '');
 });
 
 test('dashboard returns latest sensor data on subsequent requests', function () {
