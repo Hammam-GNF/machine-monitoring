@@ -30,6 +30,24 @@ class DashboardService
                 )
             )
 
+            // Location
+            ->when(
+                ($filters['location'] ?? '') !== '',
+                fn (Builder $query) => $query->where(
+                    'location',
+                    $filters['location']
+                )
+            )
+
+            // Machine Type
+            ->when(
+                ($filters['machine_type'] ?? '') !== '',
+                fn (Builder $query) => $query->where(
+                    'machine_type',
+                    $filters['machine_type']
+                )
+            )
+
             // Status
             ->when(
                 ($filters['status'] ?? '') !== '',
@@ -76,6 +94,35 @@ class DashboardService
 
             ->latest()
             ->get();
+    }
+
+    /**
+     * @return array{
+     *     locations: list<string>,
+     *     machineTypes: list<string>
+     * }
+     */
+    public function getFilterOptions(): array
+    {
+        return [
+            'locations' => Machine::query()
+                ->whereNotNull('location')
+                ->where('location', '!=', '')
+                ->distinct()
+                ->orderBy('location')
+                ->pluck('location')
+                ->values()
+                ->all(),
+
+            'machineTypes' => Machine::query()
+                ->whereNotNull('machine_type')
+                ->where('machine_type', '!=', '')
+                ->distinct()
+                ->orderBy('machine_type')
+                ->pluck('machine_type')
+                ->values()
+                ->all(),
+        ];
     }
 
     /**
