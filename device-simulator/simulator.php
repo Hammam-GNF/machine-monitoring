@@ -12,11 +12,11 @@ $devices = json_decode(
 
 if ($devices === []) {
     fwrite(STDERR, "No devices configured.\n");
-exit(1);
+    exit(1);
 }
 
 echo "IoT device simulator started.\n";
-echo "Devices: ".count($devices)."\n";
+echo 'Devices: '.count($devices)."\n";
 echo "Interval: {$interval}s\n\n";
 
 while (true) {
@@ -24,12 +24,12 @@ while (true) {
         $payload = [
             'event_id' => sprintf(
                 '%04x%04x-%04x-%04x-%04x-%012x',
-                random_int(0, 0xffff),
-                random_int(0, 0xffff),
-                random_int(0, 0xffff),
-                random_int(0x4000, 0x4fff),
-                random_int(0x8000, 0xbfff),
-                random_int(0, 0xffffffffffff)
+                random_int(0, 0xFFFF),
+                random_int(0, 0xFFFF),
+                random_int(0, 0xFFFF),
+                random_int(0x4000, 0x4FFF),
+                random_int(0x8000, 0xBFFF),
+                random_int(0, 0xFFFFFFFFFFFF)
             ),
             'machine_id' => $device['machine_id'],
             'sensor_id' => $device['sensor_id'],
@@ -60,6 +60,7 @@ while (true) {
 
         if ($response === false) {
             echo "FAILED machine {$device['machine_id']}: {$error}\n";
+
             continue;
         }
 
