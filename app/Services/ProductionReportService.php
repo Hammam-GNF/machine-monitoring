@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class ProductionReportService
 {
+    /**
+     * @return LengthAwarePaginator<int, mixed>
+     */
     public function aggregateByDay(
         ?string $dateFrom = null,
         ?string $dateTo = null,
@@ -31,6 +34,9 @@ class ProductionReportService
             ->withQueryString();
     }
 
+    /**
+     * @return LengthAwarePaginator<int, mixed>
+     */
     public function aggregateByMonth(
         ?string $dateFrom = null,
         ?string $dateTo = null,

@@ -104,24 +104,31 @@ class DashboardService
      */
     public function getFilterOptions(): array
     {
-        return [
-            'locations' => Machine::query()
+        /** @var list<string> $locations */
+        $locations = array_values(
+            Machine::query()
                 ->whereNotNull('location')
                 ->where('location', '!=', '')
                 ->distinct()
                 ->orderBy('location')
                 ->pluck('location')
-                ->values()
-                ->all(),
+                ->all()
+        );
 
-            'machineTypes' => Machine::query()
+        /** @var list<string> $machineTypes */
+        $machineTypes = array_values(
+            Machine::query()
                 ->whereNotNull('machine_type')
                 ->where('machine_type', '!=', '')
                 ->distinct()
                 ->orderBy('machine_type')
                 ->pluck('machine_type')
-                ->values()
-                ->all(),
+                ->all()
+        );
+
+        return [
+            'locations' => $locations,
+            'machineTypes' => $machineTypes,
         ];
     }
 
