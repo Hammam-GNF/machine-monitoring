@@ -86,6 +86,16 @@ test('admin can create a machine', function () {
         'machine_type' => 'CNC',
         'is_active' => true,
     ]);
+
+    $this->assertDatabaseHas('sensors', [
+        'machine_id' => Machine::query()
+            ->where('code', 'MC-001')
+            ->value('id'),
+        'code' => 'SNS-0001',
+        'name' => 'Default Sensor',
+        'type' => 'temperature',
+        'is_active' => true,
+    ]);
 });
 
 test('admin can view machine detail', function () {
@@ -220,4 +230,75 @@ test('machine code can remain unchanged when updating a machine', function () {
         ])
         ->assertRedirect()
         ->assertSessionHasNoErrors();
+});
+
+test('admin can deactivate a machine', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $machine = Machine::factory()->create([
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('machines.deactivate', $machine))
+        ->assertRedirect(route('machines.index'))
+        ->assertSessionHas('success', 'Machine deactivated successfully.');
+
+    expect($machine->fresh()->is_active)->toBeFalse();
+});
+
+test('admin can activate an inactive machine', function () {
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    $machine = Machine::factory()->create([
+        'is_active' => false,
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('machines.activate', $machine))
+        ->assertRedirect(route('machines.index'))
+        ->assertSessionHas('success', 'Machine activated successfully.');
+
+    expect($machine->fresh()->is_active)->toBeTrue();
+});
+test('viewer cannot deactivate a machine', function () {
+    $viewer = User::factory()->create([
+        'role' => 'viewer',
+    ]);
+
+    $machine = Machine::factory()->create([
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($viewer)
+        ->post(route('machines.deactivate', $machine))
+        ->assertForbidden();
+
+    expect($machine->fresh()->is_active)->toBeTrue();
+});
+
+test('guest cannot deactivate a machine', function () {
+    $machine = Machine::factory()->create([
+        'is_active' => true,
+    ]);
+
+    $this->post(route('machines.deactivate', $machine))
+        ->assertRedirect(route('login'));
+
+    expect($machine->fresh()->is_active)->toBeTrue();
+});
+
+test('guest cannot activate a machine', function () {
+    $machine = Machine::factory()->create([
+        'is_active' => false,
+    ]);
+
+    $this->post(route('machines.activate', $machine))
+        ->assertRedirect(route('login'));
+
+    expect($machine->fresh()->is_active)->toBeFalse();
 });

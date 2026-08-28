@@ -114,6 +114,44 @@
                                                 Edit
                                             </flux:button>
                                         @endif
+
+                                        @if (auth()->user()->isAdmin())
+                                            @if ($machine->is_active)
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('machines.deactivate', $machine) }}"
+                                                    class="inline"
+                                                >
+                                                    @csrf
+
+                                                    <flux:button
+                                                        type="submit"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        icon="pause"
+                                                    >
+                                                        Deactivate
+                                                    </flux:button>
+                                                </form>
+                                            @else
+                                                <form
+                                                    method="POST"
+                                                    action="{{ route('machines.activate', $machine) }}"
+                                                    class="inline"
+                                                >
+                                                    @csrf
+
+                                                    <flux:button
+                                                        type="submit"
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        icon="play"
+                                                    >
+                                                        Activate
+                                                    </flux:button>
+                                                </form>
+                                            @endif
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

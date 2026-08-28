@@ -28,6 +28,17 @@ class MachineController extends Controller
     {
         $machine = Machine::create($request->validated());
 
+        $machine->sensors()->create([
+            'code' => 'SNS-'.str_pad(
+                (string) $machine->id,
+                4,
+                '0',
+                STR_PAD_LEFT
+            ),
+            'name' => 'Default Sensor',
+            'type' => 'temperature',
+        ]);
+
         return redirect()
             ->route('machines.show', $machine)
             ->with('success', 'Machine created successfully.');
@@ -54,8 +65,25 @@ class MachineController extends Controller
             ->with('success', 'Machine updated successfully.');
     }
 
-    public function destroy(Machine $machine): RedirectResponse
+    public function activate(Machine $machine): RedirectResponse
     {
-        abort(404);
+        $machine->update([
+            'is_active' => true,
+        ]);
+
+        return redirect()
+            ->route('machines.index')
+            ->with('success', 'Machine activated successfully.');
+    }
+
+    public function deactivate(Machine $machine): RedirectResponse
+    {
+        $machine->update([
+            'is_active' => false,
+        ]);
+
+        return redirect()
+            ->route('machines.index')
+            ->with('success', 'Machine deactivated successfully.');
     }
 }
