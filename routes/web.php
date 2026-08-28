@@ -43,6 +43,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::put('machines/{machine}', [MachineController::class, 'update'])
             ->name('machines.update');
+
+        Route::post('machines/{machine}/activate', [MachineController::class, 'activate'])
+            ->name('machines.activate');
+
+        Route::post('machines/{machine}/deactivate', [MachineController::class, 'deactivate'])
+            ->name('machines.deactivate');
     });
 
     Route::get('machines/{machine}', [MachineController::class, 'show'])

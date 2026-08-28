@@ -75,6 +75,38 @@
                 >
                     Edit Machine
                 </flux:button>
+
+                @if ($machine->is_active)
+                    <form
+                        method="POST"
+                        action="{{ route('machines.deactivate', $machine) }}"
+                        class="inline"
+                    >
+                        @csrf
+
+                        <flux:button
+                            type="submit"
+                            variant="danger"
+                        >
+                            Deactivate Machine
+                        </flux:button>
+                    </form>
+                @else
+                    <form
+                        method="POST"
+                        action="{{ route('machines.activate', $machine) }}"
+                        class="inline"
+                    >
+                        @csrf
+
+                        <flux:button
+                            type="submit"
+                            variant="primary"
+                        >
+                            Activate Machine
+                        </flux:button>
+                    </form>
+                @endif
             @endif
         </div>
     </div>
